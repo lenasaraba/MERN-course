@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -13,6 +13,7 @@ import { Appbar, IconButton, Searchbar } from "react-native-paper";
 import SearchProducts from "./SearchProducts";
 import Banner from "../../Shared/Banner";
 import CategoryFilter from "./CategoryFilter";
+import { useFocusEffect } from "@react-navigation/native";
 
 import baseURL from "../../assets/common/baseURL";
 import axios from "axios";
@@ -27,39 +28,44 @@ const ProductContainer = (props) => {
   const [productCtg, setProductCtg] = useState([]);
   const [active, setActive] = useState();
   const [initialState, setInitialState] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setFocus(false);
-    setActive(-1);
+  //usefocus effect zbog navigation
+  useFocusEffect(
+    useCallback(() => {
+      setFocus(false);
+      setActive(-1);
 
-    //products
-    axios.get(`${baseURL}products`).then((res) => {
-      setProducts(res.data);
-      setProductsFiltered(res.data);
-      setProductCtg(res.data);
-      setInitialState(res.data);
-    });
-
-    //categories
-    axios
-      .get(`${baseURL}categories`)
-      .then((res) => {
-        setCategories(res.data);
-      })
-      .catch((error) => {
-        console.log("Api call error");
+      //products
+      axios.get(`${baseURL}products`).then((res) => {
+        setProducts(res.data);
+        setProductsFiltered(res.data);
+        setProductCtg(res.data);
+        setInitialState(res.data);
+        setLoading(false);
       });
 
-    //return cisti stanje kada se komponenta unmountuje
-    return () => {
-      setProducts([]);
-      setProductsFiltered([]);
-      setFocus();
-      setCategories([]);
-      setActive();
-      setInitialState();
-    };
-  }, []);
+      //categories
+      axios
+        .get(`${baseURL}categories`)
+        .then((res) => {
+          setCategories(res.data);
+        })
+        .catch((error) => {
+          console.log("Api call error " + error);
+        });
+
+      //return cisti stanje kada se komponenta unmountuje
+      return () => {
+        setProducts([]);
+        setProductsFiltered([]);
+        setFocus();
+        setCategories([]);
+        setActive();
+        setInitialState();
+      };
+    }, [])
+  );
 
   const searchProduct = (text) => {
     setProductsFiltered(
@@ -90,74 +96,88 @@ const ProductContainer = (props) => {
   };
 
   return (
-    <View style={styles.container}>
-      <>
-        {/* dodala ja statusbarheight jer ima neki difoltni padding top u suprotnom */}
-        <Appbar.Header statusBarHeight={0}>
-          {/* <Appbar.BackAction onPress={() => {}} />
+    <>
+      {loading == false ? (
+        <View style={styles.container}>
+          <>
+            {/* dodala ja statusbarheight jer ima neki difoltni padding top u suprotnom */}
+            <Appbar.Header statusBarHeight={0}>
+              {/* <Appbar.BackAction onPress={() => {}} />
           <Appbar.Content title="Moja stranica" />
           <Appbar.Action icon="magnify" onPress={() => {}} /> */}
-          <Searchbar
-            style={{ paddingTop: 0 }}
-            placeholder="Search..."
-            onChangeText={(text) => searchProduct(text)}
-            // value={searchQuery}
-            onFocus={openList}
-            right={
-              focus
-                ? (props) => (
-                    <IconButton
-                      {...props}
-                      icon="close"
-                      onPress={onBlur} // ovdje zatvori search ili makni fokus
-                    />
-                  )
-                : null
-            }
-          />
-        </Appbar.Header>
-      </>
-      {focus == true ? (
-        <SearchProducts
-          navigation={props.navigation}
-          productsFiltered={productsFiltered}
-        />
-      ) : (
-        <ScrollView>
-          <View>
-            <View>
-              <Banner />
-            </View>
-            <View>
-              <CategoryFilter
-                categories={categories}
-                categoryFilter={changeCtg}
-                productCtg={productCtg}
-                active={active}
-                setActive={setActive}
+              <Searchbar
+                style={{ paddingTop: 0 }}
+                placeholder="Search..."
+                onChangeText={(text) => searchProduct(text)}
+                // value={searchQuery}
+                onFocus={openList}
+                right={
+                  focus
+                    ? (props) => (
+                        <IconButton
+                          {...props}
+                          icon="close"
+                          onPress={onBlur} // ovdje zatvori search ili makni fokus
+                        />
+                      )
+                    : null
+                }
               />
-            </View>
-            {productCtg.length > 0 ? (
-              <View style={styles.listContainer}>
-                {productCtg.map((item) => {
-                  return (
-                    <ProductList
-                      navigation={props.navigation}
-                      key={item.id}
-                      item={item}
-                    />
-                  );
-                })}
+            </Appbar.Header>
+          </>
+          {focus == true ? (
+            <SearchProducts
+              navigation={props.navigation}
+              productsFiltered={productsFiltered}
+            />
+          ) : (
+            <ScrollView>
+              <View>
+                <View>
+                  <Banner />
+                </View>
+                <View>
+                  <CategoryFilter
+                    categories={categories}
+                    categoryFilter={changeCtg}
+                    productCtg={productCtg}
+                    active={active}
+                    setActive={setActive}
+                  />
+                </View>
+                {productCtg.length > 0 ? (
+                  <View style={styles.listContainer}>
+                    {productCtg.map((item) => {
+                      return (
+                        <ProductList
+                          navigation={props.navigation}
+                          key={item.id}
+                          item={item}
+                        />
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <View style={[styles.center, { height: height / 2 }]}>
+                    <Text>No products found.</Text>
+                  </View>
+                )}
               </View>
-            ) : (
-              <View style={[styles.center, { height: height / 2 }]}>
-                <Text>No products found.</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+            </ScrollView>
+          )}
+        </View>
+      ) : (
+        //loading
+        <View
+          style={[
+            styles.center,
+            { backgroundColor: "#f2f2f2", height: "100%" },
+          ]}
+        >
+          <ActivityIndicator size="large" color="red" />
+        </View>
       )}
-    </View>
+    </>
   );
 };
 

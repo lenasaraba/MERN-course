@@ -6,7 +6,7 @@ var { width } = Dimensions.get("window");
 
 const ProductList = (props) => {
   const { item } = props;
-  console.log(item);
+
   return (
     <TouchableOpacity
       onPress={() =>

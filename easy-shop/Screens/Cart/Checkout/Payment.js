@@ -24,6 +24,7 @@ const paymentCards = [
 
 const Payment = (props) => {
   const order = props.route.params;
+  console.log("order\n", order);
   const [visible, setVisible] = useState(false);
 
   const [selected, setSelected] = useState();

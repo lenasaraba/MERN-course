@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Text, View, Button } from "react-native";
 import { Icon } from "react-native-vector-icons/FontAwesome";
 import FormContainer from "../../../Shared/Form/FormContainer";
@@ -7,6 +7,8 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 
 import { connect } from "react-redux";
 import { Menu, Button as Button2, Text as Text2 } from "react-native-paper";
+import AuthGlobal from "../../../Context/store/AuthGlobal";
+import Toast from "react-native-toast-message";
 
 const countryList = require("../../../assets/countries.json");
 
@@ -18,9 +20,25 @@ const Checkout = (props) => {
   const [zip, setZip] = useState();
   const [country, setCountry] = useState();
   const [phone, setPhone] = useState();
+  const [user, setUser] = useState();
+
+  const context = useContext(AuthGlobal);
 
   useEffect(() => {
     setOrderItems(props.cartItems);
+
+    if (context.stateUser.isAuthenticated) {
+      console.log("sub " + context.stateUser.user.userId);
+      setUser(context.stateUser.user.userId);
+    } else {
+      props.navigation.navigate("Cart");
+      Toast.show({
+        topOffset: 60,
+        type: "error",
+        text1: "Please login to checkout",
+        text2: "",
+      });
+    }
 
     return () => {
       setOrderItems();
@@ -28,7 +46,7 @@ const Checkout = (props) => {
   }, []);
 
   const checkout = () => {
-    order = {
+    let order = {
       city,
       country,
       dateOrdered: Date.now(),
@@ -36,6 +54,8 @@ const Checkout = (props) => {
       phone,
       shippingAddress1: address,
       shippingAddress2: address2,
+      status: "3",
+      user,
       zip,
     };
 
@@ -145,6 +165,7 @@ return <Picker.Item key={c.code} label={c.name} value={c.name} />;
 
 const mapStateToProps = (state) => {
   const { cartItems } = state;
+  console.log("Cart items: \n", cartItems);
   return {
     cartItems: cartItems,
   };

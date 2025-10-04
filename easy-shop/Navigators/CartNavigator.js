@@ -29,6 +29,8 @@ function MyStack() {
           //   lineHeight: 24, // sprječava da ga "odsiječe"
           // },
           headerStatusBarHeight: 0, // uklanja prazninu iznad
+
+          headerTitleAlign: "center",
         }}
       />
     </Stack.Navigator>

@@ -3,7 +3,6 @@ import { StyleSheet } from "react-native";
 import { Text, List, Avatar } from "react-native-paper";
 
 const CartItem = (props) => {
-  console.log(props);
   const data = props.item.item.product;
   const [quantity, setQuantity] = useState(props.item.quantity);
 

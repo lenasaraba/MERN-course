@@ -5,7 +5,7 @@ var { width } = Dimensions.get("window");
 
 const FormContainer = (props) => {
   return (
-    //jer je scrollview ovdje container pa neam obicni style
+    //jer je scrollview ovdje container pa nemam obicni style
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>{props.title}</Text>
       {props.children}
@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
     width: width,
     justifyContent: "center",
     alignItems: "center",
+    flexGrow: 1,
   },
   title: {
     fontSize: 30,

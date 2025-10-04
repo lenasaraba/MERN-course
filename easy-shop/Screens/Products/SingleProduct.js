@@ -10,10 +10,32 @@ import {
 import { Surface, Text as PaperText } from "react-native-paper";
 import { connect } from "react-redux";
 import * as actions from "../../Redux/Actions/cartActions";
+import Toast from "react-native-toast-message";
+import EasyButton from "../../Shared/StyledComponents/EasyButton";
+import TrafficLight from "../../Shared/StyledComponents/TrafficLight";
 
 const SingleProduct = (props) => {
   const [item, setItem] = useState(props.route.params.item);
   const [availability, setAvilability] = useState(null);
+  const [availabilityText, setAvilabilityText] = useState("");
+
+  useEffect(() => {
+    if (props.route.params.item.countInStock == 0) {
+      setAvilability(<TrafficLight unavailable></TrafficLight>);
+      setAvilabilityText("Unavailable");
+    } else if (props.route.params.item.countInStock <= 5) {
+      setAvilability(<TrafficLight limited></TrafficLight>);
+      setAvilabilityText("Limited Stock");
+    } else {
+      setAvilability(<TrafficLight available></TrafficLight>);
+      setAvilabilityText("Available");
+    }
+
+    return () => {
+      setAvilability(null);
+      setAvilabilityText("");
+    };
+  }, []);
 
   return (
     <Surface style={styles.container}>
@@ -35,7 +57,16 @@ const SingleProduct = (props) => {
           </PaperText>
           <Text style={styles.contentText}>{item.brand}</Text>
         </View>
-        {/* TODO: Description, Rich Description and Availability */}
+
+        <View style={styles.availabilityContainer}>
+          <View style={styles.availability}>
+            <Text style={{ marginRight: 10 }}>
+              Availability: {availabilityText}
+            </Text>
+            {availability}
+          </View>
+          <Text>{item.description}</Text>
+        </View>
       </ScrollView>
 
       <View style={styles.bottomContainer}>
@@ -43,15 +74,24 @@ const SingleProduct = (props) => {
           <Text style={styles.price}>${item.price}</Text>
         </View>
         <View style={styles.right}>
-          <Button
-            title="Add"
+          <EasyButton
+            primary
+            medium
             onPress={() => {
               //on napisao ovo ali nastaje problem jer props sadzi i ovu novu fju additemtocart, a ona nije serializable
               // props.addItemToCart(props);
               //zato koristimo
               props.addItemToCart(item);
+              Toast.show({
+                topOffset: 60,
+                type: "success",
+                text1: `${item.name} added to Cart`,
+                text2: "Go to your cart to complete order",
+              });
             }}
-          />
+          >
+            <Text style={{ color: "white" }}>Add</Text>
+          </EasyButton>
         </View>
       </View>
     </Surface>
@@ -118,6 +158,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-end",
     paddingRight: 2,
+  },
+  availabilityContainer: {
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  availability: {
+    flexDirection: "row",
+    marginBottom: 10,
   },
 });
 
